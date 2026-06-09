@@ -37,33 +37,36 @@ Key Features
 📉 Price Stabilization Support
 
 📱 User-Friendly Web Platform
+## Project Structure
 
+```text
 annraksh
 │
 ├── src
 │   ├── main
 │   │   ├── java
-│   │   │   └── com.annraksh
-│   │   │       ├── controller
-│   │   │       ├── service
-│   │   │       ├── repository
-│   │   │       ├── entity
-│   │   │       ├── dto
-│   │   │       ├── security
-│   │   │       └── config
+│   │   │   └── com
+│   │   │       └── annraksh
+│   │   │           ├── controller
+│   │   │           ├── service
+│   │   │           ├── repository
+│   │   │           ├── entity
+│   │   │           ├── dto
+│   │   │           ├── security
+│   │   │           └── config
 │   │   │
-│   │   ├── resources
-│   │   │   ├── templates
-│   │   │   ├── static
-│   │   │   │   ├── css
-│   │   │   │   ├── js
-│   │   │   │   └── images
-│   │   │   └── application.properties
+│   │   └── resources
+│   │       ├── templates
+│   │       ├── static
+│   │       │   ├── css
+│   │       │   ├── js
+│   │       │   └── images
+│   │       └── application.properties
 │
 └── pom.xml
-
-
+```
 How It Works
+
 Farmers register the crops they intend to cultivate.
 The system tracks projected cultivation volumes.
 When a crop reaches estimated market demand limits, the platform alerts new farmers.
