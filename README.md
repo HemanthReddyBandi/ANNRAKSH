@@ -1,5 +1,6 @@
 # ANNRAKSH
 🌾 ANNRAKSH – AI-Powered Food Wastage Prevention & Crop Planning System 🌾🤖🚜
+
 About the Project
 
 ANNRAKSH is an AI-driven agricultural management platform designed to prevent food wastage, reduce crop overproduction, and support sustainable farming. The system helps farmers make data-driven cultivation decisions by analyzing market demand, crop registrations, soil conditions, and regional agricultural trends.
