@@ -38,6 +38,31 @@ Key Features
 
 📱 User-Friendly Web Platform
 
+annraksh
+│
+├── src
+│   ├── main
+│   │   ├── java
+│   │   │   └── com.annraksh
+│   │   │       ├── controller
+│   │   │       ├── service
+│   │   │       ├── repository
+│   │   │       ├── entity
+│   │   │       ├── dto
+│   │   │       ├── security
+│   │   │       └── config
+│   │   │
+│   │   ├── resources
+│   │   │   ├── templates
+│   │   │   ├── static
+│   │   │   │   ├── css
+│   │   │   │   ├── js
+│   │   │   │   └── images
+│   │   │   └── application.properties
+│
+└── pom.xml
+
+
 How It Works
 Farmers register the crops they intend to cultivate.
 The system tracks projected cultivation volumes.
@@ -49,15 +74,29 @@ Climate conditions
 Market demand
 Farmers can make informed decisions, reducing wastage and increasing profitability.
 Tech Stack
-Frontend
-HTML
-CSS
-JavaScript
-Bootstrap / React
-Backend
-Django / Spring Boot
-Database
-MySQL / PostgreSQL
+
+Backend:
+- Java
+- Spring Boot
+- Spring Security
+- Spring Data JPA
+- JWT
+
+Frontend:
+- Thymeleaf
+- HTML
+- CSS
+- JavaScript
+
+Database:
+- PostgreSQL
+
+Tools:
+- Maven
+- Git
+- GitHub
+- Postman
+
 AI/ML
 Demand Forecasting
 Crop Recommendation Models
