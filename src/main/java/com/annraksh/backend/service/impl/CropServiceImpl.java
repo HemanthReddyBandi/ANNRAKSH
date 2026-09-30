@@ -1,6 +1,7 @@
 package com.annraksh.backend.service.impl;
 
 import com.annraksh.backend.entity.Crop;
+import com.annraksh.backend.exception.DuplicateResourceException;
 import com.annraksh.backend.repository.CropRepository;
 import com.annraksh.backend.service.CropService;
 import jakarta.persistence.EntityNotFoundException;
@@ -34,7 +35,7 @@ public class CropServiceImpl implements CropService {
     @Transactional
     public Crop create(Crop crop) {
         if (cropRepository.existsByNameIgnoreCase(crop.getName())) {
-            throw new IllegalArgumentException("A crop with this name already exists");
+            throw new DuplicateResourceException("A crop with this name already exists");
         }
         return cropRepository.save(crop);
     }
@@ -46,7 +47,7 @@ public class CropServiceImpl implements CropService {
         cropRepository.findByNameIgnoreCase(changes.getName())
                 .filter(match -> !match.getId().equals(id))
                 .ifPresent(match -> {
-                    throw new IllegalArgumentException("A crop with this name already exists");
+                    throw new DuplicateResourceException("A crop with this name already exists");
                 });
 
         existing.setName(changes.getName());

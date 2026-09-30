@@ -43,6 +43,9 @@ public class CultivationPlanServiceImpl implements CultivationPlanService {
     @Override
     @Transactional
     public CultivationPlan create(CultivationPlan plan, Long farmerId, Long cropId) {
+        if (plan.getExpectedHarvestDate().isBefore(plan.getPlantingDate())) {
+            throw new IllegalArgumentException("Expected harvest date must be on or after planting date");
+        }
         Farmer farmer = farmerRepository.findById(farmerId)
                 .orElseThrow(() -> new EntityNotFoundException("Farmer not found: " + farmerId));
         Crop crop = cropRepository.findById(cropId)
