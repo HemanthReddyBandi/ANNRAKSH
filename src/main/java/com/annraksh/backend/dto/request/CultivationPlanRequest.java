@@ -10,7 +10,6 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 
 public record CultivationPlanRequest(
-        @NotNull @Positive Long farmerId,
         @NotNull @Positive Long cropId,
         @NotNull @DecimalMin(value = "0.001") BigDecimal areaHectares,
         @NotNull @DecimalMin(value = "0.001") BigDecimal plannedQuantity,

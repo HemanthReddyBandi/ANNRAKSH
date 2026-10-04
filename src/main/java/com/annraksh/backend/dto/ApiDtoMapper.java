@@ -66,7 +66,9 @@ public class ApiDtoMapper {
 
     public RecommendationResponse toResponse(Recommendation recommendation) {
         return new RecommendationResponse(recommendation.getId(), recommendation.getCrop().getId(),
-                recommendation.getCrop().getName(), recommendation.getScore(), recommendation.getDemandLevel(),
-                recommendation.getDecision(), recommendation.getReason(), recommendation.getCreatedAt());
+                recommendation.getCrop().getName(), recommendation.getScore(), recommendation.getMarketScore(),
+                recommendation.getSeasonScore(), recommendation.getHistoricalPerformanceScore(),
+                recommendation.getDemandLevel(), recommendation.getDecision(), recommendation.getReason(),
+                recommendation.getDemandRecordedDate(), recommendation.getCreatedAt());
     }
 }

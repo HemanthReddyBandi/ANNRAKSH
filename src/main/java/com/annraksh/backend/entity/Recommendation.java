@@ -12,18 +12,18 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
-import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.Instant;
+import java.time.LocalDate;
 
 @Entity
 @Table(name = "recommendations")
 @Getter
 @Setter
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@NoArgsConstructor
 public class Recommendation {
 
     @Id
@@ -40,6 +40,18 @@ public class Recommendation {
 
     @Column(nullable = false)
     private Integer score;
+
+    @Column(nullable = false)
+    private Integer marketScore;
+
+    @Column(nullable = false)
+    private Integer seasonScore;
+
+    @Column(nullable = false)
+    private Integer historicalPerformanceScore;
+
+    @Column(nullable = false)
+    private LocalDate demandRecordedDate;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)

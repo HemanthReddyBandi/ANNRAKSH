@@ -9,4 +9,6 @@ public interface RecommendationService {
     List<Recommendation> getForFarmer(Long farmerId);
 
     Recommendation getForFarmerById(Long recommendationId, Long farmerId);
+
+    List<Recommendation> generateForFarmer(Long farmerId);
 }

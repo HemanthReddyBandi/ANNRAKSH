@@ -4,6 +4,7 @@ import com.annraksh.backend.entity.Crop;
 import com.annraksh.backend.entity.CultivationPlan;
 import com.annraksh.backend.entity.CultivationStatus;
 import com.annraksh.backend.entity.Farmer;
+import com.annraksh.backend.exception.BusinessRuleException;
 import com.annraksh.backend.repository.CropRepository;
 import com.annraksh.backend.repository.CultivationPlanRepository;
 import com.annraksh.backend.repository.FarmerRepository;
@@ -12,6 +13,8 @@ import jakarta.persistence.EntityNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.List;
 
 @Service
@@ -57,10 +60,40 @@ public class CultivationPlanServiceImpl implements CultivationPlanService {
 
     @Override
     @Transactional
-    public CultivationPlan updateStatus(Long id, CultivationStatus status) {
-        CultivationPlan plan = planRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Cultivation plan not found: " + id));
+    public CultivationPlan updateStatus(Long id, CultivationStatus status, Long farmerId) {
+        CultivationPlan plan = findPlanOwnedByFarmer(id, farmerId);
+        if (status == CultivationStatus.HARVESTED) {
+            throw new BusinessRuleException("Use the harvest endpoint to record an actual harvest");
+        }
+        if (plan.getStatus() == CultivationStatus.HARVESTED && status != CultivationStatus.HARVESTED) {
+            throw new BusinessRuleException("A harvested plan cannot return to an active status");
+        }
         plan.setStatus(status);
         return planRepository.save(plan);
+    }
+
+    @Override
+    @Transactional
+    public CultivationPlan recordHarvest(Long id, BigDecimal actualQuantity, LocalDate actualDate, Long farmerId) {
+        CultivationPlan plan = findPlanOwnedByFarmer(id, farmerId);
+        if (actualDate.isBefore(plan.getPlantingDate())) {
+            throw new BusinessRuleException("Actual harvest date cannot be before planting date");
+        }
+        if (plan.getStatus() == CultivationStatus.CANCELLED) {
+            throw new BusinessRuleException("A cancelled plan cannot be marked as harvested");
+        }
+        plan.setActualHarvestQuantity(actualQuantity);
+        plan.setActualHarvestDate(actualDate);
+        plan.setStatus(CultivationStatus.HARVESTED);
+        return planRepository.save(plan);
+    }
+
+    private CultivationPlan findPlanOwnedByFarmer(Long id, Long farmerId) {
+        CultivationPlan plan = planRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Cultivation plan not found: " + id));
+        if (!plan.getFarmer().getId().equals(farmerId)) {
+            throw new EntityNotFoundException("Cultivation plan not found: " + id);
+        }
+        return plan;
     }
 }

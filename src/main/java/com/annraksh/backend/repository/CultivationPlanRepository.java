@@ -25,4 +25,7 @@ public interface CultivationPlanRepository extends JpaRepository<CultivationPlan
 
     @EntityGraph(attributePaths = {"farmer", "crop"})
     List<CultivationPlan> findByCropIdAndActualHarvestQuantityIsNotNull(Long cropId);
+
+    @EntityGraph(attributePaths = "crop")
+    List<CultivationPlan> findByFarmerIdAndActualHarvestQuantityIsNotNull(Long farmerId);
 }
