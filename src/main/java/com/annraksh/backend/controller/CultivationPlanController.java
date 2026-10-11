@@ -4,10 +4,18 @@ import com.annraksh.backend.dto.ApiDtoMapper;
 import com.annraksh.backend.dto.request.CultivationPlanRequest;
 import com.annraksh.backend.dto.request.CultivationStatusRequest;
 import com.annraksh.backend.dto.request.HarvestRecordRequest;
+import com.annraksh.backend.dto.response.ApiErrorResponse;
 import com.annraksh.backend.dto.response.CultivationPlanResponse;
 import com.annraksh.backend.service.FarmerService;
 import com.annraksh.backend.service.CultivationPlanService;
 import jakarta.validation.Valid;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -24,6 +32,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/cultivation-plans")
+@Tag(name = "Cultivation plans", description = "Plans owned by the authenticated farmer")
 public class CultivationPlanController {
 
     private final CultivationPlanService planService;
@@ -38,12 +47,25 @@ public class CultivationPlanController {
     }
 
     @GetMapping
+    @Operation(summary = "List my cultivation plans", description = "Returns cultivation plans belonging to the signed-in farmer.", security = @SecurityRequirement(name = "bearerAuth"))
+    @ApiResponses({
+            @ApiResponse(responseCode = "401", description = "Missing or invalid bearer token", content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))),
+            @ApiResponse(responseCode = "403", description = "FARMER role required", content = @Content(schema = @Schema(implementation = ApiErrorResponse.class)))
+    })
     public List<CultivationPlanResponse> getPlans(@AuthenticationPrincipal Jwt jwt) {
         Long farmerId = farmerService.getByEmail(jwt.getSubject()).getId();
         return planService.getForFarmer(farmerId).stream().map(mapper::toResponse).toList();
     }
 
     @PostMapping
+    @Operation(summary = "Create a cultivation plan", description = "Creates a plan for the signed-in farmer. The farmer identity is taken from the JWT.", security = @SecurityRequirement(name = "bearerAuth"))
+    @ApiResponses({
+            @ApiResponse(responseCode = "201", description = "Cultivation plan created"),
+            @ApiResponse(responseCode = "400", description = "Invalid plan data", content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))),
+            @ApiResponse(responseCode = "401", description = "Missing or invalid bearer token", content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))),
+            @ApiResponse(responseCode = "403", description = "FARMER role required", content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))),
+            @ApiResponse(responseCode = "404", description = "Crop not found", content = @Content(schema = @Schema(implementation = ApiErrorResponse.class)))
+    })
     public ResponseEntity<CultivationPlanResponse> create(@Valid @RequestBody CultivationPlanRequest request,
                                                           @AuthenticationPrincipal Jwt jwt) {
         Long farmerId = farmerService.getByEmail(jwt.getSubject()).getId();
@@ -52,6 +74,15 @@ public class CultivationPlanController {
     }
 
     @PatchMapping("/{id}/status")
+    @Operation(summary = "Update a plan status", description = "Advances or cancels a cultivation plan owned by the signed-in farmer.", security = @SecurityRequirement(name = "bearerAuth"))
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Plan status updated"),
+            @ApiResponse(responseCode = "400", description = "Invalid status request", content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))),
+            @ApiResponse(responseCode = "401", description = "Missing or invalid bearer token", content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))),
+            @ApiResponse(responseCode = "403", description = "FARMER role required", content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))),
+            @ApiResponse(responseCode = "404", description = "Plan not found", content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))),
+            @ApiResponse(responseCode = "422", description = "Requested status transition is not allowed", content = @Content(schema = @Schema(implementation = ApiErrorResponse.class)))
+    })
     public CultivationPlanResponse updateStatus(@PathVariable Long id,
                                                 @AuthenticationPrincipal Jwt jwt,
                                                 @Valid @RequestBody CultivationStatusRequest request) {
@@ -60,6 +91,15 @@ public class CultivationPlanController {
     }
 
     @PatchMapping("/{id}/harvest")
+    @Operation(summary = "Record a harvest", description = "Records actual harvested quantity and date for a plan owned by the signed-in farmer. This history contributes to future recommendations.", security = @SecurityRequirement(name = "bearerAuth"))
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Harvest recorded"),
+            @ApiResponse(responseCode = "400", description = "Invalid harvest data", content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))),
+            @ApiResponse(responseCode = "401", description = "Missing or invalid bearer token", content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))),
+            @ApiResponse(responseCode = "403", description = "FARMER role required", content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))),
+            @ApiResponse(responseCode = "404", description = "Plan not found", content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))),
+            @ApiResponse(responseCode = "422", description = "Plan cannot be harvested in its current state", content = @Content(schema = @Schema(implementation = ApiErrorResponse.class)))
+    })
     public CultivationPlanResponse recordHarvest(@PathVariable Long id,
                                                  @AuthenticationPrincipal Jwt jwt,
                                                  @Valid @RequestBody HarvestRecordRequest request) {
