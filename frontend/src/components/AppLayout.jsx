@@ -12,6 +12,7 @@ const farmerLinks = [
 
 const adminLinks = [
   { to: '/dashboard', label: 'Overview', icon: '▦' },
+  { to: '/admin/farmers', label: 'Farmers', icon: '♙' },
   { to: '/crops', label: 'Crop library', icon: '◒' },
   { to: '/demand', label: 'Market demand', icon: '↗' },
 ];

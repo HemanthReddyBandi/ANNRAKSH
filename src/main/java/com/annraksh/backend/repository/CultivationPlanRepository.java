@@ -23,6 +23,8 @@ public interface CultivationPlanRepository extends JpaRepository<CultivationPlan
     @EntityGraph(attributePaths = {"farmer", "crop"})
     List<CultivationPlan> findByStatusOrderByExpectedHarvestDateAsc(CultivationStatus status);
 
+    long countByStatus(CultivationStatus status);
+
     @EntityGraph(attributePaths = {"farmer", "crop"})
     List<CultivationPlan> findByCropIdAndActualHarvestQuantityIsNotNull(Long cropId);
 

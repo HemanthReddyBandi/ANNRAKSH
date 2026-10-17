@@ -9,6 +9,7 @@ import Crops from './pages/Crops.jsx';
 import Demand from './pages/Demand.jsx';
 import CultivationPlans from './pages/CultivationPlans.jsx';
 import Recommendations from './pages/Recommendations.jsx';
+import AdminFarmers from './pages/AdminFarmers.jsx';
 
 function HomeRedirect() {
   const { user } = useAuth();
@@ -29,6 +30,9 @@ export default function App() {
           <Route element={<ProtectedRoute roles={['FARMER']} />}>
             <Route path="/plans" element={<CultivationPlans />} />
             <Route path="/recommendations" element={<Recommendations />} />
+          </Route>
+          <Route element={<ProtectedRoute roles={['ADMIN']} />}>
+            <Route path="/admin/farmers" element={<AdminFarmers />} />
           </Route>
         </Route>
       </Route>

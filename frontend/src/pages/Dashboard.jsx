@@ -7,6 +7,7 @@ import { cropService } from '../services/cropService.js';
 import { demandService } from '../services/demandService.js';
 import { planService } from '../services/planService.js';
 import { recommendationService } from '../services/recommendationService.js';
+import { adminService } from '../services/adminService.js';
 import { getErrorMessage } from '../services/api.js';
 import { formatDateTime, titleCase } from '../utils/format.js';
 
@@ -22,7 +23,7 @@ export default function Dashboard() {
     setError('');
     try {
       const result = isAdmin
-        ? await Promise.all([cropService.list(), demandService.list()])
+        ? await Promise.all([adminService.dashboard(), cropService.list(), demandService.list()])
         : await Promise.all([planService.list(), recommendationService.list()]);
       setData(result);
     } catch (requestError) {
@@ -41,7 +42,7 @@ export default function Dashboard() {
         title={isAdmin ? `Good day, ${firstName}` : `Welcome back, ${firstName}`}
         description={isAdmin ? 'Keep crop and market information current for your farming community.' : `Here is a clear view of your growing plans${user?.location ? ` around ${user.location}` : ''}.`} />
       {loading ? <LoadingState /> : error ? <ErrorState message={error} onRetry={load} /> : (
-        isAdmin ? <AdminOverview crops={data?.[0] || []} demand={data?.[1] || []} />
+        isAdmin ? <AdminOverview stats={data?.[0]} crops={data?.[1] || []} demand={data?.[2] || []} />
           : <FarmerOverview plans={data?.[0] || []} recommendations={data?.[1] || []} user={user} />
       )}
     </>
@@ -77,9 +78,7 @@ function FarmerOverview({ plans, recommendations, user }) {
   );
 }
 
-function AdminOverview({ crops, demand }) {
-  const highDemand = demand.filter((record) => record.demandLevel === 'HIGH').length;
-  const supplyGap = demand.filter((record) => Number(record.supplyQuantity) < Number(record.demandQuantity)).length;
+function AdminOverview({ stats, crops, demand }) {
   return (
     <div className="dashboard-content">
       <section className="welcome-banner admin-banner">
@@ -87,17 +86,33 @@ function AdminOverview({ crops, demand }) {
         <div className="banner-actions"><Link className="button button-light" to="/demand">Manage demand data <span>→</span></Link></div>
         <span className="banner-orbit orbit-one" /><span className="banner-orbit orbit-two" />
       </section>
-      <div className="metric-grid">
-        <MetricCard label="Crop varieties" value={crops.length} note="In the crop library" icon="◒" tone="sage" />
-        <MetricCard label="Demand records" value={demand.length} note="Across all recorded locations" icon="↗" tone="blue" />
-        <MetricCard label="High-demand signals" value={highDemand} note={`${supplyGap} records show supply below demand`} icon="✳" tone="gold" />
+      <div className="metric-grid admin-metric-grid">
+        <MetricCard label="Farmers" value={stats?.totalFarmers ?? '—'} note="Registered accounts" icon="♙" tone="sage" />
+        <MetricCard label="Crop varieties" value={stats?.totalCrops ?? crops.length} note="In the crop library" icon="◒" tone="sage" />
+        <MetricCard label="Demand records" value={stats?.totalDemandRecords ?? demand.length} note="Recorded market snapshots" icon="↗" tone="blue" />
+        <MetricCard label="Cultivation plans" value={stats?.totalCultivationPlans ?? '—'} note={`${stats?.growingPlans ?? 0} currently growing`} icon="▤" tone="gold" />
+        <MetricCard label="Recommendations" value={stats?.totalRecommendations ?? '—'} note="Generated for farmers" icon="✳" tone="blue" />
       </div>
+      <section className="content-panel">
+        <div className="panel-heading"><div><p className="eyebrow">CULTIVATION PIPELINE</p><h2>Plans by status</h2></div></div>
+        <div className="admin-status-grid">
+          <StatusCount label="Planned" value={stats?.plannedPlans} />
+          <StatusCount label="Planted" value={stats?.plantedPlans} />
+          <StatusCount label="Growing" value={stats?.growingPlans} />
+          <StatusCount label="Harvested" value={stats?.harvestedPlans} />
+          <StatusCount label="Cancelled" value={stats?.cancelledPlans} />
+        </div>
+      </section>
       <section className="quick-links-grid">
         <QuickLink to="/crops" title="Maintain crop library" text="Add varieties, seasons, and growth duration." icon="◒" />
         <QuickLink to="/demand" title="Record local demand" text="Keep demand and supply snapshots current." icon="＋" />
       </section>
     </div>
   );
+}
+
+function StatusCount({ label, value }) {
+  return <div className="admin-status-count"><span>{label}</span><strong>{value ?? '—'}</strong></div>;
 }
 
 function MetricCard({ label, value, note, icon, tone }) {

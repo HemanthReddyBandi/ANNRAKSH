@@ -7,14 +7,21 @@ import com.annraksh.backend.dto.response.CropDemandResponse;
 import com.annraksh.backend.dto.response.CropResponse;
 import com.annraksh.backend.dto.response.CultivationPlanResponse;
 import com.annraksh.backend.dto.response.RecommendationResponse;
+import com.annraksh.backend.dto.response.FarmerResponse;
 import com.annraksh.backend.entity.Crop;
 import com.annraksh.backend.entity.CropDemand;
 import com.annraksh.backend.entity.CultivationPlan;
 import com.annraksh.backend.entity.Recommendation;
+import com.annraksh.backend.entity.Farmer;
 import org.springframework.stereotype.Component;
 
 @Component
 public class ApiDtoMapper {
+
+    public FarmerResponse toResponse(Farmer farmer) {
+        return new FarmerResponse(farmer.getId(), farmer.getName(), farmer.getEmail(), farmer.getPhone(),
+                farmer.getRole(), farmer.getLocation(), farmer.getCreatedAt());
+    }
 
     public Crop toEntity(CropRequest request) {
         Crop crop = new Crop();
