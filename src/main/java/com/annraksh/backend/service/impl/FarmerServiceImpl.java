@@ -32,6 +32,16 @@ public class FarmerServiceImpl implements FarmerService {
     }
 
     @Override
+    @Transactional
+    public Farmer updateProfile(String email, String name, String phone, String location) {
+        Farmer farmer = getByEmail(email);
+        farmer.setName(name.trim());
+        farmer.setPhone(phone == null || phone.isBlank() ? null : phone.trim());
+        farmer.setLocation(location.trim());
+        return farmerRepository.save(farmer);
+    }
+
+    @Override
     public List<Farmer> getAll() {
         return farmerRepository.findAll();
     }

@@ -4,8 +4,10 @@ import com.annraksh.backend.dto.ApiDtoMapper;
 import com.annraksh.backend.dto.request.CultivationPlanRequest;
 import com.annraksh.backend.dto.request.CultivationStatusRequest;
 import com.annraksh.backend.dto.request.HarvestRecordRequest;
+import com.annraksh.backend.dto.request.HarvestDispositionUpdateRequest;
 import com.annraksh.backend.dto.response.ApiErrorResponse;
 import com.annraksh.backend.dto.response.CultivationPlanResponse;
+import com.annraksh.backend.dto.response.HarvestDispositionAuditResponse;
 import com.annraksh.backend.service.FarmerService;
 import com.annraksh.backend.service.CultivationPlanService;
 import jakarta.validation.Valid;
@@ -24,6 +26,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -91,7 +94,7 @@ public class CultivationPlanController {
     }
 
     @PatchMapping("/{id}/harvest")
-    @Operation(summary = "Record a harvest", description = "Records actual harvested quantity and date for a plan owned by the signed-in farmer. This history contributes to future recommendations.", security = @SecurityRequirement(name = "bearerAuth"))
+    @Operation(summary = "Record a harvest", description = "Records actual harvested quantity and date plus optional sold, stored, and discarded quantities for a plan owned by the signed-in farmer. Disposition quantities cannot exceed the harvest; any remainder stays unallocated.", security = @SecurityRequirement(name = "bearerAuth"))
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Harvest recorded"),
             @ApiResponse(responseCode = "400", description = "Invalid harvest data", content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))),
@@ -105,6 +108,40 @@ public class CultivationPlanController {
                                                  @Valid @RequestBody HarvestRecordRequest request) {
         Long farmerId = farmerService.getByEmail(jwt.getSubject()).getId();
         return mapper.toResponse(planService.recordHarvest(id, request.actualHarvestQuantity(),
-                request.actualHarvestDate(), farmerId));
+                request.actualHarvestDate(), request.soldQuantity(), request.storedQuantity(),
+                request.discardedQuantity(), farmerId));
+    }
+
+    @PutMapping("/{id}/harvest-disposition")
+    @Operation(summary = "Update harvest disposition", description = "Revises the current sold, stored, and discarded totals for a harvested plan. The change is recorded in the plan audit history.", security = @SecurityRequirement(name = "bearerAuth"))
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Harvest disposition updated"),
+            @ApiResponse(responseCode = "400", description = "Invalid disposition quantities", content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))),
+            @ApiResponse(responseCode = "401", description = "Missing or invalid bearer token", content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))),
+            @ApiResponse(responseCode = "403", description = "FARMER role required", content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))),
+            @ApiResponse(responseCode = "404", description = "Plan not found", content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))),
+            @ApiResponse(responseCode = "422", description = "Disposition exceeds the harvest or the plan is not harvested", content = @Content(schema = @Schema(implementation = ApiErrorResponse.class)))
+    })
+    public CultivationPlanResponse updateHarvestDisposition(@PathVariable Long id,
+                                                            @AuthenticationPrincipal Jwt jwt,
+                                                            @Valid @RequestBody HarvestDispositionUpdateRequest request) {
+        Long farmerId = farmerService.getByEmail(jwt.getSubject()).getId();
+        return mapper.toResponse(planService.updateHarvestDisposition(id, request.soldQuantity(),
+                request.storedQuantity(), request.discardedQuantity(), farmerId));
+    }
+
+    @GetMapping("/{id}/harvest-disposition/history")
+    @Operation(summary = "View harvest disposition history", description = "Returns the signed-in farmer's recorded harvest disposition changes for this plan, newest first.", security = @SecurityRequirement(name = "bearerAuth"))
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Disposition history returned"),
+            @ApiResponse(responseCode = "401", description = "Missing or invalid bearer token", content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))),
+            @ApiResponse(responseCode = "403", description = "FARMER role required", content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))),
+            @ApiResponse(responseCode = "404", description = "Plan not found", content = @Content(schema = @Schema(implementation = ApiErrorResponse.class)))
+    })
+    public List<HarvestDispositionAuditResponse> getHarvestDispositionHistory(
+            @PathVariable Long id, @AuthenticationPrincipal Jwt jwt) {
+        Long farmerId = farmerService.getByEmail(jwt.getSubject()).getId();
+        return planService.getHarvestDispositionHistory(id, farmerId).stream()
+                .map(mapper::toResponse).toList();
     }
 }

@@ -5,4 +5,8 @@ export const planService = {
   create: async (plan) => (await api.post('/api/cultivation-plans', plan)).data,
   updateStatus: async (id, status) => (await api.patch(`/api/cultivation-plans/${id}/status`, { status })).data,
   recordHarvest: async (id, record) => (await api.patch(`/api/cultivation-plans/${id}/harvest`, record)).data,
+  updateDisposition: async (id, disposition) =>
+    (await api.put(`/api/cultivation-plans/${id}/harvest-disposition`, disposition)).data,
+  dispositionHistory: async (id) =>
+    (await api.get(`/api/cultivation-plans/${id}/harvest-disposition/history`)).data,
 };

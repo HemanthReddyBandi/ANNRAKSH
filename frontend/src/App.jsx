@@ -10,6 +10,9 @@ import Demand from './pages/Demand.jsx';
 import CultivationPlans from './pages/CultivationPlans.jsx';
 import Recommendations from './pages/Recommendations.jsx';
 import AdminFarmers from './pages/AdminFarmers.jsx';
+import AdminCultivationPlans from './pages/AdminCultivationPlans.jsx';
+import AdminAgriculturalStatistics from './pages/AdminAgriculturalStatistics.jsx';
+import Profile from './pages/Profile.jsx';
 
 function HomeRedirect() {
   const { user } = useAuth();
@@ -28,11 +31,14 @@ export default function App() {
           <Route path="/crops" element={<Crops />} />
           <Route path="/demand" element={<Demand />} />
           <Route element={<ProtectedRoute roles={['FARMER']} />}>
+            <Route path="/profile" element={<Profile />} />
             <Route path="/plans" element={<CultivationPlans />} />
             <Route path="/recommendations" element={<Recommendations />} />
           </Route>
           <Route element={<ProtectedRoute roles={['ADMIN']} />}>
             <Route path="/admin/farmers" element={<AdminFarmers />} />
+            <Route path="/admin/cultivation-plans" element={<AdminCultivationPlans />} />
+            <Route path="/admin/statistics" element={<AdminAgriculturalStatistics />} />
           </Route>
         </Route>
       </Route>

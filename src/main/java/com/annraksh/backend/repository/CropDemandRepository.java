@@ -46,4 +46,21 @@ public interface CropDemandRepository extends JpaRepository<CropDemand, Long> {
             order by d.crop.name
             """)
     List<CropDemand> findLatestRecordsByLocation(@Param("location") String location);
+
+    @EntityGraph(attributePaths = "crop")
+    @Query("""
+            select d from CropDemand d
+            where d.recordedDate = (
+                    select max(recent.recordedDate) from CropDemand recent
+                    where recent.crop = d.crop and lower(recent.location) = lower(d.location)
+            )
+              and d.id = (
+                    select max(tieBreak.id) from CropDemand tieBreak
+                    where tieBreak.crop = d.crop
+                      and lower(tieBreak.location) = lower(d.location)
+                      and tieBreak.recordedDate = d.recordedDate
+            )
+            order by lower(d.location), d.crop.name
+            """)
+    List<CropDemand> findLatestRecordsAcrossLocations();
 }

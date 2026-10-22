@@ -47,6 +47,15 @@ public class CultivationPlan {
     @Column(precision = 14, scale = 3)
     private BigDecimal actualHarvestQuantity;
 
+    @Column(nullable = false, precision = 14, scale = 3)
+    private BigDecimal soldQuantity = BigDecimal.ZERO;
+
+    @Column(nullable = false, precision = 14, scale = 3)
+    private BigDecimal storedQuantity = BigDecimal.ZERO;
+
+    @Column(nullable = false, precision = 14, scale = 3)
+    private BigDecimal discardedQuantity = BigDecimal.ZERO;
+
     @Column(nullable = false, length = 20)
     private String quantityUnit;
 

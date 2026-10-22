@@ -8,11 +8,14 @@ const farmerLinks = [
   { to: '/demand', label: 'Market demand', icon: '↗' },
   { to: '/plans', label: 'Cultivation plans', icon: '▤' },
   { to: '/recommendations', label: 'Recommendations', icon: '✳' },
+  { to: '/profile', label: 'Profile', icon: '♙' },
 ];
 
 const adminLinks = [
   { to: '/dashboard', label: 'Overview', icon: '▦' },
   { to: '/admin/farmers', label: 'Farmers', icon: '♙' },
+  { to: '/admin/cultivation-plans', label: 'Cultivation plans', icon: '▤' },
+  { to: '/admin/statistics', label: 'Agricultural statistics', icon: '▥' },
   { to: '/crops', label: 'Crop library', icon: '◒' },
   { to: '/demand', label: 'Market demand', icon: '↗' },
 ];

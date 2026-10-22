@@ -8,11 +8,15 @@ import com.annraksh.backend.dto.response.CropResponse;
 import com.annraksh.backend.dto.response.CultivationPlanResponse;
 import com.annraksh.backend.dto.response.RecommendationResponse;
 import com.annraksh.backend.dto.response.FarmerResponse;
+import com.annraksh.backend.dto.response.AdminCultivationPlanResponse;
+import com.annraksh.backend.dto.response.MarketBalanceResponse;
+import com.annraksh.backend.dto.response.HarvestDispositionAuditResponse;
 import com.annraksh.backend.entity.Crop;
 import com.annraksh.backend.entity.CropDemand;
 import com.annraksh.backend.entity.CultivationPlan;
 import com.annraksh.backend.entity.Recommendation;
 import com.annraksh.backend.entity.Farmer;
+import com.annraksh.backend.entity.HarvestDispositionAudit;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -21,6 +25,41 @@ public class ApiDtoMapper {
     public FarmerResponse toResponse(Farmer farmer) {
         return new FarmerResponse(farmer.getId(), farmer.getName(), farmer.getEmail(), farmer.getPhone(),
                 farmer.getRole(), farmer.getLocation(), farmer.getCreatedAt());
+    }
+
+    public AdminCultivationPlanResponse toAdminResponse(CultivationPlan plan) {
+        return new AdminCultivationPlanResponse(plan.getId(), plan.getFarmer().getId(),
+                plan.getFarmer().getName(), plan.getFarmer().getEmail(), plan.getCrop().getId(),
+                plan.getCrop().getName(), plan.getAreaHectares(), plan.getPlannedQuantity(),
+                plan.getActualHarvestQuantity(), plan.getSoldQuantity(), plan.getStoredQuantity(),
+                plan.getDiscardedQuantity(), unallocatedHarvestQuantity(plan), plan.getQuantityUnit(), plan.getPlantingDate(),
+                plan.getExpectedHarvestDate(), plan.getActualHarvestDate(), plan.getStatus());
+    }
+
+    private java.math.BigDecimal unallocatedHarvestQuantity(CultivationPlan plan) {
+        if (plan.getActualHarvestQuantity() == null) {
+            return null;
+        }
+        return plan.getActualHarvestQuantity()
+                .subtract(plan.getSoldQuantity())
+                .subtract(plan.getStoredQuantity())
+                .subtract(plan.getDiscardedQuantity());
+    }
+
+    public MarketBalanceResponse toMarketBalanceResponse(CropDemand demand) {
+        var balance = demand.getSupplyQuantity().subtract(demand.getDemandQuantity());
+        String signal = balance.signum() > 0 ? "POTENTIAL_SURPLUS"
+                : balance.signum() < 0 ? "SUPPLY_GAP" : "BALANCED";
+        return new MarketBalanceResponse(demand.getCrop().getId(), demand.getCrop().getName(),
+                demand.getLocation(), demand.getDemandQuantity(), demand.getSupplyQuantity(), balance,
+                demand.getQuantityUnit(), signal, demand.getRecordedDate());
+    }
+
+    public HarvestDispositionAuditResponse toResponse(HarvestDispositionAudit audit) {
+        return new HarvestDispositionAuditResponse(audit.getId(), audit.getAction(),
+                audit.getPreviousSoldQuantity(), audit.getPreviousStoredQuantity(),
+                audit.getPreviousDiscardedQuantity(), audit.getSoldQuantity(),
+                audit.getStoredQuantity(), audit.getDiscardedQuantity(), audit.getChangedAt());
     }
 
     public Crop toEntity(CropRequest request) {
@@ -67,7 +106,8 @@ public class ApiDtoMapper {
     public CultivationPlanResponse toResponse(CultivationPlan plan) {
         return new CultivationPlanResponse(plan.getId(), plan.getFarmer().getId(), plan.getCrop().getId(),
                 plan.getCrop().getName(), plan.getAreaHectares(), plan.getPlannedQuantity(),
-                plan.getActualHarvestQuantity(), plan.getQuantityUnit(), plan.getPlantingDate(),
+                plan.getActualHarvestQuantity(), plan.getSoldQuantity(), plan.getStoredQuantity(),
+                plan.getDiscardedQuantity(), unallocatedHarvestQuantity(plan), plan.getQuantityUnit(), plan.getPlantingDate(),
                 plan.getExpectedHarvestDate(), plan.getActualHarvestDate(), plan.getStatus());
     }
 

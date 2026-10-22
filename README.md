@@ -69,6 +69,22 @@ Open `http://localhost:5173`. During local development, Vite forwards `/api` req
 
 For a production frontend build, run `npm run build` in `frontend/`. Set `VITE_API_BASE_URL` before the build only when the API is served from a different base URL. A separately hosted frontend and API must be configured to allow the browser origin through CORS, or be placed behind a reverse proxy that serves them under one origin. This repository does not yet include production CORS or reverse-proxy configuration.
 
+## Run the backend and PostgreSQL with Docker
+
+Docker Compose starts PostgreSQL, the Spring Boot API, and the React frontend served by Nginx. Nginx forwards `/api` requests to Spring Boot, so the browser uses one origin. Copy `.env.example` to `.env`, replace `DB_PASSWORD`, and set `JWT_SECRET` to a randomly generated value of at least 32 bytes. For example, PowerShell can generate a Base64 secret with:
+
+```powershell
+[Convert]::ToBase64String([Security.Cryptography.RandomNumberGenerator]::GetBytes(32))
+```
+
+Start both services from the repository root:
+
+```powershell
+docker compose up --build
+```
+
+Open the app at `http://localhost:8080`. The API is also directly available at `http://localhost:8081` for local API tooling. PostgreSQL data persists in the `postgres_data` Docker volume. Stop the services with `Ctrl+C`, then run `docker compose down` to remove the containers while keeping the database volume. The Vite development workflow described above remains available. Do not use the example values as production credentials; configure deployment secrets through the host's secret manager.
+
 ## Tests and builds
 
 From the repository root:
@@ -103,6 +119,7 @@ npm run build
 |---|---|---|
 | `POST /api/auth/register` | Public | Register a farmer |
 | `POST /api/auth/login` | Public | Sign in |
+| `GET /api/farmer/profile`, `PUT /api/farmer/profile` | FARMER | View and update the signed-in farmer's name, phone, and market location |
 | `GET /api/crops`, `GET /api/crops/{id}` | Public | Browse the crop library |
 | `POST /api/crops`, `PUT /api/crops/{id}`, `DELETE /api/crops/{id}` | ADMIN | Maintain crop records |
 | `GET /api/demand?location={location}` | Public | Browse demand snapshots; location filter is optional |
@@ -110,10 +127,19 @@ npm run build
 | `GET /api/cultivation-plans`, `POST /api/cultivation-plans` | FARMER | List or create the signed-in farmer's plans |
 | `PATCH /api/cultivation-plans/{id}/status` | FARMER | Update a plan status |
 | `PATCH /api/cultivation-plans/{id}/harvest` | FARMER | Record actual yield and harvest date |
+| `PUT /api/cultivation-plans/{id}/harvest-disposition` | FARMER | Update sold, stored, and discarded totals with an audit record |
+| `GET /api/cultivation-plans/{id}/harvest-disposition/history` | FARMER | View disposition changes for an owned plan |
+| `GET /api/admin/dashboard` | ADMIN | View persisted platform totals and plan statuses |
+| `GET /api/admin/farmers?page={page}&size={size}&search={text}` | ADMIN | Search and page through farmer profiles |
+| `GET /api/admin/cultivation-plans?page={page}&size={size}&status={status}&search={text}` | ADMIN | Monitor farmer plans with optional status and farmer/crop filters |
+| `GET /api/admin/agricultural-statistics` | ADMIN | Review latest crop/location supply signals and grouped harvest outcomes |
+| `GET /api/admin/cultivation-plans/{id}/harvest-disposition/history` | ADMIN | Review disposition audit history for a cultivation plan |
 | `GET /api/recommendations`, `GET /api/recommendations/{id}` | FARMER | View saved recommendations |
 | `POST /api/recommendations/generate` | FARMER | Generate recommendations for the farmer's profile location |
 
 REST responses use DTOs. Incoming request DTOs are validated and errors are returned through centralized API error handling.
+
+When recording a harvest, farmers may also record quantities sold, stored, and discarded. These disposition quantities cannot exceed the actual harvest; any remainder is reported as unallocated. Admin harvest statistics group output by crop and quantity unit. A potential supply surplus is based on the newest demand snapshot for a crop and location and is not a measurement of food waste.
 
 Interactive API documentation is available at `http://localhost:8081/swagger-ui.html`; the generated OpenAPI JSON is at `http://localhost:8081/v3/api-docs`. Swagger UI's **Authorize** dialog accepts the JWT returned by login or registration. The OpenAPI and Swagger UI routes are public in this development setup. Set both `API_DOCS_ENABLED=false` and `SWAGGER_UI_ENABLED=false` in production unless the documentation is intentionally exposed.
 
@@ -121,8 +147,8 @@ Interactive API documentation is available at `http://localhost:8081/swagger-ui.
 
 The deterministic score is out of 100: market demand and supply balance contribute up to 40 points, current-season suitability up to 30, and the farmer's average completed-plan harvested-to-planned ratio up to 30. Current seasons are mapped to Kharif (June–October), Rabi (November–March), and Zaid (April–May). Harvest ratios are averaged per plan so quantity values from different plans are not added together. When there is no completed harvest history, that component receives a neutral 15 points. Each response stores component scores, decision, explanation, and the demand-data date used. Demand data for the farmer's profile location is required. Farmers record realized output through `PATCH /api/cultivation-plans/{id}/harvest` so future recommendations can use their history.
 
-Recommendations are planning guidance, not guaranteed yield or market predictions.
+Recommendations are planning guidance, not guaranteed yield or market predictions. Farmers can update their market location from the Profile page; the location must match the location labels used by demand records.
 
 ## Production readiness
 
-Flyway manages database changes through the scripts in `src/main/resources/db/migration`; the current migration set creates the domain tables and adds indexes for the main demand, cultivation-plan, and recommendation queries. Hibernate uses `ddl-auto=validate` and fails startup if the schema does not match the entity mappings. For an existing database, baseline only after a backup and schema review. For production, store secrets in the hosting environment's secret manager, configure the allowed frontend origin or a same-origin reverse proxy, disable public API documentation unless intentionally exposed, and set production database connection and backup policies. No Docker image or deployment manifests are included yet.
+Flyway manages database changes through the scripts in `src/main/resources/db/migration`; the current migration set creates the domain tables and adds indexes for the main demand, cultivation-plan, and recommendation queries. Hibernate uses `ddl-auto=validate` and fails startup if the schema does not match the entity mappings. For an existing database, baseline only after a backup and schema review. For production, store secrets in the hosting environment's secret manager, disable public API documentation unless intentionally exposed, and set production database connection and backup policies. The Docker Compose setup is intended for local evaluation and runs the frontend, backend, and PostgreSQL together. It is not a complete production deployment: TLS termination, database backups, monitoring, and host-specific secret management still need to be configured for the chosen deployment platform.

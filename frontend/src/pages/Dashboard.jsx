@@ -57,7 +57,7 @@ function FarmerOverview({ plans, recommendations, user }) {
     <div className="dashboard-content">
       <section className="welcome-banner">
         <div><span className="banner-kicker">YOUR FIELD, IN FOCUS</span><h2>Plan with the market in mind.</h2><p>Recommendations use the latest demand data for your location and your own recorded harvests.</p></div>
-        <div className="banner-actions"><Link className="button button-light" to="/recommendations">View recommendations <span>→</span></Link><span className="banner-location">⌖ &nbsp;{user?.location || 'Add a location at registration'}</span></div>
+        <div className="banner-actions"><Link className="button button-light" to="/recommendations">View recommendations <span>→</span></Link><span className="banner-location">⌖ &nbsp;{user?.location || 'Add your market location in Profile'}</span></div>
         <span className="banner-orbit orbit-one" /><span className="banner-orbit orbit-two" />
       </section>
       <div className="metric-grid">

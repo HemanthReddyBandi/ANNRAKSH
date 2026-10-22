@@ -10,5 +10,7 @@ public interface FarmerService {
 
     Farmer getByEmail(String email);
 
+    Farmer updateProfile(String email, String name, String phone, String location);
+
     List<Farmer> getAll();
 }

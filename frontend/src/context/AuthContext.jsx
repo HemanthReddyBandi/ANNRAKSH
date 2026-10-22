@@ -35,6 +35,10 @@ export function AuthProvider({ children }) {
       sessionStorage.setItem('annraksh.user', JSON.stringify(authResponse.farmer));
       setUser(authResponse.farmer);
     },
+    updateUser: (updatedUser) => {
+      sessionStorage.setItem('annraksh.user', JSON.stringify(updatedUser));
+      setUser(updatedUser);
+    },
     logout: clearSession,
   }), [user]);
 
