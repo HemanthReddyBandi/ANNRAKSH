@@ -23,6 +23,10 @@ The backend defaults to PostgreSQL at `jdbc:postgresql://localhost:5432/annraksh
 | `DB_USERNAME` | No | `postgres` |
 | `DB_PASSWORD` | Yes | Password for the PostgreSQL user |
 | `JWT_SECRET` | Yes | Private signing key; at least 32 UTF-8 bytes |
+| `BOOTSTRAP_ADMIN_ENABLED` | No | Set to `true` for one-time initial administrator setup; defaults to `false` |
+| `BOOTSTRAP_ADMIN_EMAIL` | Only when bootstrap is enabled and no admin exists | Email for the initial administrator |
+| `BOOTSTRAP_ADMIN_NAME` | Only when bootstrap is enabled and no admin exists | Display name for the initial administrator |
+| `BOOTSTRAP_ADMIN_PASSWORD` | Only when bootstrap is enabled and no admin exists | Initial password; 12–72 UTF-8 bytes; remove after setup |
 | `FLYWAY_BASELINE_ON_MIGRATE` | Normally no | Set to `true` for the one-time baseline of a pre-existing Hibernate-created schema; see below |
 | `API_DOCS_ENABLED` | No | OpenAPI JSON endpoint toggle; enabled by default |
 | `SWAGGER_UI_ENABLED` | No | Swagger UI toggle; enabled by default |
@@ -105,7 +109,7 @@ npm run build
 - `POST /api/auth/register` creates a FARMER account and returns a bearer token.
 - `POST /api/auth/login` authenticates an account and returns a bearer token.
 - Send the token with protected requests as `Authorization: Bearer <accessToken>`.
-- Public registration always assigns the FARMER role. To provision an administrator, first register a trusted account, then promote it out of band, for example:
+- Public registration always assigns the FARMER role. For the first administrator on a new installation, set `BOOTSTRAP_ADMIN_ENABLED=true` and provide `BOOTSTRAP_ADMIN_EMAIL`, `BOOTSTRAP_ADMIN_NAME`, and `BOOTSTRAP_ADMIN_PASSWORD` in the environment before starting the API. Bootstrap creates an administrator only when no admin exists, refuses to change an existing farmer's role, and logs no password. Disable it and remove its password variable after successful startup. For an existing installation, an administrator can still be provisioned out of band after verifying the account, for example:
 
   ```sql
   UPDATE farmers SET role = 'ADMIN' WHERE email = 'admin@example.com';
